@@ -1,7 +1,7 @@
-package org.example.product_management.controller;
+package com.example.product.controller;
 
-import org.example.product_management.model.Product;
-import org.example.product_management.service.IProductService;
+import com.example.product.model.Product;
+import com.example.product.service.IProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

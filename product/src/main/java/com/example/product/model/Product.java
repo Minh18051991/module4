@@ -1,4 +1,4 @@
-package org.example.product_management.model;
+package com.example.product.model;
 
 import javax.persistence.*;
 

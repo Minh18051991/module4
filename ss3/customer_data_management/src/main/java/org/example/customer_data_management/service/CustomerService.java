@@ -1,47 +1,112 @@
 package org.example.customer_data_management.service;
 
 import org.example.customer_data_management.model.Customer;
+import org.hibernate.HibernateException;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
 import org.springframework.stereotype.Service;
+import org.hibernate.cfg.Configuration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
+import javax.persistence.TypedQuery;
+
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class CustomerService implements ICustomerService {
-    private static final Map<Integer, Customer> customers = new HashMap<>();
+    private static final Logger logger = LoggerFactory.getLogger(CustomerService.class);
+    private static SessionFactory sessionFactory;
+    private static EntityManager entityManager;
 
     static {
-        customers.put(1,new Customer(1, "John", "john@example.com", "123 Main St"));
-        customers.put(2,new Customer(2, "Adam", "Adam@example.com", "456 Elm St"));
-        customers.put(3,new Customer(3, "Smith", "Smith@example.com", "789 Oak St"));
+        try {
+            sessionFactory = new Configuration()
+                    .configure("hibernate.conf.xml")
+                    .buildSessionFactory();
+            EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("org.example.customer_data_management");
+            entityManager = entityManagerFactory.createEntityManager();
+            logger.info("SessionFactory and EntityManager initialized successfully.");
+        } catch (HibernateException e) {
+            logger.error("Initialization of SessionFactory failed.", e);
+        }
     }
 
     @Override
     public List<Customer> findAll() {
-        return new ArrayList<>(customers.values());
-    }
-
-    @Override
-    public Customer findById(int id) {
-        return customers.get(id);
-
+        String queryString = "SELECT c FROM Customer AS c";
+        TypedQuery<Customer> query = entityManager.createQuery(queryString, Customer.class);
+        return query.getResultList();
     }
 
     @Override
     public void save(Customer customer) {
-        customers.put(customer.getId(), customer);
+        Transaction transaction = null;
+        Customer origin;
+        if (customer.getId() == 0) {
+            origin = new Customer();
+        } else {
+            origin = findById(customer.getId());
+        }
+        try (Session session = sessionFactory.openSession()) {
+            transaction = session.beginTransaction();
+            origin.setName(customer.getName());
+            origin.setEmail(customer.getEmail());
+            origin.setAddress(customer.getAddress());
+            session.saveOrUpdate(origin);
+            transaction.commit();
+        } catch (Exception e) {
+            logger.error("Error saving customer.", e);
+            if (transaction != null) {
+                transaction.rollback();
+            }
+        }
+    }
+
+    @Override
+    public Customer findById(int id) {
+        String queryString = "SELECT c FROM Customer AS c WHERE c.id = :id";
+        TypedQuery<Customer> query = entityManager.createQuery(queryString, Customer.class);
+        query.setParameter("id", id);
+        return query.getSingleResult();
     }
 
     @Override
     public void update(int id, Customer customer) {
-        customers.put(id, customer);
+        Transaction transaction = null;
+        try (Session session = sessionFactory.openSession()) {
+            transaction = session.beginTransaction();
+            Customer origin = session.get(Customer.class, id);
+            origin.setName(customer.getName());
+            origin.setEmail(customer.getEmail());
+            origin.setAddress(customer.getAddress());
+            session.update(origin);
+            transaction.commit();
+        } catch (Exception e) {
+            logger.error("Error updating customer.", e);
+            if (transaction != null) {
+                transaction.rollback();
+            }
+        }
     }
 
     @Override
     public void deleteById(int id) {
-        customers.remove(id);
+        Transaction transaction = null;
+        try (Session session = sessionFactory.openSession()) {
+            transaction = session.beginTransaction();
+            Customer customer = session.get(Customer.class, id);
+            session.delete(customer);
+            transaction.commit();
+        } catch (Exception e) {
+            logger.error("Error deleting customer.", e);
+            if (transaction != null) {
+                transaction.rollback();
+            }
+        }
     }
-
 }
