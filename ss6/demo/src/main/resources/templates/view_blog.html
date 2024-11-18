@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Blog Details</title>
+    <title>View Blog</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -24,7 +24,7 @@
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
 
-        .blog h1 {
+        .blog h2 {
             margin-top: 0;
         }
     </style>
@@ -32,10 +32,10 @@
 <body>
 <div class="container">
     <div class="blog">
-        <h1 th:text="${blog.title}">Blog Title</h1>
+        <h2 th:text="${blog.title}">Blog Title</h2>
         <p th:text="${blog.content}">Blog Content</p>
         <p>Category: <span th:text="${blog.category.name}">Category Name</span></p>
-        <a href="/blogs">Back to Blog List</a>
+        <p>Created At: <span th:text="${#temporals.format(blog.createdAt, 'yyyy-MM-dd HH:mm')}">Created At</span></p>
     </div>
 </div>
 </body>
