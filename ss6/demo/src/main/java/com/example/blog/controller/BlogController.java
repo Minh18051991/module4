@@ -1,12 +1,9 @@
-// src/main/java/com/example/blog/controller/BlogController.java
 package com.example.blog.controller;
 
 import com.example.blog.model.Blog;
 import com.example.blog.model.Category;
-import com.example.blog.service.BlogService;
 import com.example.blog.service.CategoryService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.example.blog.service.IBlogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -21,17 +18,18 @@ import java.util.Optional;
 @Controller
 @RequestMapping("/blogs")
 public class BlogController {
-    private static final Logger logger = LoggerFactory.getLogger(BlogController.class);
-
     @Autowired
-    private BlogService blogService;
+    private final IBlogService blogService;
+    private final CategoryService categoryService;
 
-    @Autowired
-    private CategoryService categoryService;
+    public BlogController(IBlogService blogService, CategoryService categoryService) {
+        this.blogService = blogService;
+        this.categoryService = categoryService;
+    }
 
     @GetMapping
     public String getAllBlogs(Model model, @RequestParam(defaultValue = "0") int page) {
-        int pageSize = 5; // Set the number of blogs per page
+        int pageSize = 2; // Set the number of blogs per page
         Pageable pageable = PageRequest.of(page, pageSize);
         model.addAttribute("blogs", blogService.findAllByOrderByCreatedAtDesc(pageable));
         model.addAttribute("categories", categoryService.findAll());
@@ -96,7 +94,7 @@ public class BlogController {
 
     @GetMapping("/search")
     public String searchBlogs(@RequestParam String title, Model model, @RequestParam(defaultValue = "0") int page) {
-        int pageSize = 5;
+        int pageSize = 2;
         Pageable pageable = PageRequest.of(page, pageSize, Sort.sort(Blog.class).by(Blog::getCreatedAt).descending());
         model.addAttribute("blogs", blogService.findByTitleContaining(title, pageable));
         model.addAttribute("categories", categoryService.findAll());
@@ -105,12 +103,13 @@ public class BlogController {
 
     @GetMapping("/category/{id}")
     public String listBlogsByCategory(@PathVariable Long id, Model model, @RequestParam(defaultValue = "0") int page) {
-        int pageSize = 5; // Set the number of blogs per page
+        int pageSize = 2; // Set the number of blogs per page
         Pageable pageable = PageRequest.of(page, pageSize);
         Category category = categoryService.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid category Id:" + id));
         model.addAttribute("blogs", blogService.findByCategory(category, pageable));
         model.addAttribute("categories", categoryService.findAll());
+        model.addAttribute("currentCategoryId", id); // Add current category ID to the model
         return "index";
     }
 

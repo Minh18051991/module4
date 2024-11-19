@@ -18,15 +18,5 @@ public interface IBlogRepository extends JpaRepository<Blog, Long> {
 
     Page<Blog> findByCategory(Category category, Pageable pageable);
 
-    @Override
-    Blog save(Blog blog);
 
-    @Override
-    List<Blog> findAll();
-
-    @Override
-    Optional<Blog> findById(Long id);
-
-    @Override
-    void deleteById(Long id);
 }
