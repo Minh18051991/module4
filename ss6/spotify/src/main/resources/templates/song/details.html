@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Song Details</title>
+</head>
+<body>
+    <h1>Song Details</h1>
+    <div>
+        <label>Title:</label>
+        <span th:text="${song.title}">Title</span>
+    </div>
+    <div>
+        <label>Artist:</label>
+        <span th:text="${song.artist.name}">Artist</span>
+    </div>
+    <div>
+        <label>Genre:</label>
+        <span th:text="${song.genre.name}">Genre</span>
+    </div>
+    <div>
+        <label>File:</label>
+        <a th:href="@{${song.filePath}}">Download</a>
+    </div>
+    <div>
+        <a th:href="@{/songs/list}">Back to List</a>
+    </div>
+</body>
+</html>

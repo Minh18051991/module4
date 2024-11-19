@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Sửa bài hát</title>
+</head>
+<body>
+    <h1>Sửa bài hát</h1>
+
+    <form th:action="@{/update}" th:object="${songDto}" method="post">
+        <input type="hidden" th:field="*{id}" />
+        <div>
+            <label for="title">Tên bài hát:</label>
+            <input type="text" id="title" th:field="*{title}" />
+            <div th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></div>
+        </div>
+        <div>
+            <label for="artist">Nghệ sĩ:</label>
+            <input type="text" id="artist" th:field="*{artist}" />
+            <div th:if="${#fields.hasErrors('artist')}" th:errors="*{artist}"></div>
+        </div>
+        <div>
+            <label for="genre">Thể loại:</label>
+            <input type="text" id="genre" th:field="*{genre}" />
+            <div th:if="${#fields.hasErrors('genre')}" th:errors="*{genre}"></div>
+        </div>
+        <div>
+            <button type="submit">Cập nhật</button>
+        </div>
+    </form>
+</body>
+</html>

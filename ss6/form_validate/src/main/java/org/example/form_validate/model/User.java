@@ -17,14 +17,14 @@ public class User {
     private Long id;
 
     @NotBlank(message = "First name is required")
-    @Size(min = 5, max = 45, message = "First name must be between 5 and 45 characters")
+    @Size(min = 2, max = 45, message = "First name must be between 5 and 45 characters")
     private String firstName;
 
     @NotBlank(message = "Last name is required")
-    @Size(min = 5, max = 45, message = "Last name must be between 5 and 45 characters")
+    @Size(min = 2, max = 45, message = "Last name must be between 5 and 45 characters")
     private String lastName;
 
-    @Pattern(regexp = "^\\d{10}$", message = "Phone number must be 10 digits")
+    @Pattern(regexp = "^\\d{10,11}$", message = "Phone number must be 10,11 digits")
     private String phoneNumber;
 
     @Min(value = 18, message = "Age must be at least 18")

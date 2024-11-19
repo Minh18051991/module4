@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Add New Song</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        .validation-message {
+            color: red;
+            font-size: 0.8em;
+        }
+        #addSongBtn {
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="mb-4">Add New Song</h1>
+        <form id="songForm" th:action="@{/songs/create}" th:object="${songDTO}" method="post">
+            <div class="form-group">
+                <label for="name">Song Name</label>
+                <input type="text" id="name" th:field="*{name}" class="form-control" required />
+                <div th:if="${#fields.hasErrors('name')}" th:errors="*{name}" class="text-danger"></div>
+                <small class="validation-message" style="display: none;">Please enter a valid song name</small>
+            </div>
+            <div class="form-group">
+                <label for="artist">Artist</label>
+                <input type="text" id="artist" th:field="*{artist}" class="form-control" required />
+                <div th:if="${#fields.hasErrors('artist')}" th:errors="*{artist}" class="text-danger"></div>
+                <small class="validation-message" style="display: none;">Please enter a valid artist name</small>
+            </div>
+            <div class="form-group">
+                <label for="genre">Genre</label>
+                <input type="text" id="genre" th:field="*{genre}" class="form-control" required />
+                <div th:if="${#fields.hasErrors('genre')}" th:errors="*{genre}" class="text-danger"></div>
+                <small class="validation-message" style="display: none;">Please enter a valid genre</small>
+            </div>
+            <button id="addSongBtn" type="submit" class="btn btn-primary">Add Song</button>
+        </form>
+        <a href="/songs" class="btn btn-secondary mt-3">Back to Song List</a>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('songForm');
+            const addSongBtn = document.getElementById('addSongBtn');
+            const inputs = form.querySelectorAll('input[required]');
+            const validationMessages = document.querySelectorAll('.validation-message');
+
+          function validateForm() {
+    let isValid = true;
+    const nameRegex = /^[^@;,.=+\-]+$/;
+    const artistRegex = /^[^@;,.=+\-]+$/;
+    const genreRegex = /^[^@;=.\-+]+(,[^@;=.\-+]+)*$/;
+
+    inputs.forEach((input, index) => {
+        const value = input.value.trim();
+        let isFieldValid = true;
+
+        if (!value) {
+            isFieldValid = false;
+            validationMessages[index].textContent = `Please enter a ${input.id}`;
+        } else {
+            switch (input.id) {
+                case 'name':
+                    if (!nameRegex.test(value) || value.length > 800) {
+                        isFieldValid = false;
+                        validationMessages[index].textContent = "Song name must not contain special characters and be less than 800 characters";
+                    }
+                    break;
+                case 'artist':
+                    if (!artistRegex.test(value) || value.length > 300) {
+                        isFieldValid = false;
+                        validationMessages[index].textContent = "Artist name must not contain special characters and be less than 300 characters";
+                    }
+                    break;
+                case 'genre':
+                    if (!genreRegex.test(value) || value.length > 1000) {
+                        isFieldValid = false;
+                        validationMessages[index].textContent = "Genre must only contain commas as special characters and be less than 1000 characters";
+                    }
+                    break;
+            }
+        }
+
+        if (!isFieldValid) {
+            isValid = false;
+            validationMessages[index].style.display = 'block';
+        } else {
+            validationMessages[index].style.display = 'none';
+        }
+    });
+
+    return isValid;
+}
+
+      function moveButton() {
+    if (!validateForm()) {
+        const buttonRect = addSongBtn.getBoundingClientRect();
+        const buttonWidth = buttonRect.width;
+        const buttonHeight = buttonRect.height;
+
+        // Ensure movement is greater than button dimensions
+        const minMove = Math.max(buttonWidth, buttonHeight) + 10; // Add 10px for good measure
+        const maxMove = minMove * 2; // Double the minimum for more dramatic movement
+
+        const randomX = (Math.random() < 0.5 ? -1 : 1) * (Math.random() * (maxMove - minMove) + minMove);
+        const randomY = (Math.random() < 0.5 ? -1 : 1) * (Math.random() * (maxMove - minMove) + minMove);
+
+        // Ensure the button stays within viewport
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+
+        const newX = Math.max(0, Math.min(viewportWidth - buttonWidth, buttonRect.left + randomX)) - buttonRect.left;
+        const newY = Math.max(0, Math.min(viewportHeight - buttonHeight, buttonRect.top + randomY)) - buttonRect.top;
+
+        addSongBtn.style.transform = `translate(${newX}px, ${newY}px)`;
+    } else {
+        addSongBtn.style.transform = 'translate(0, 0)';
+    }
+}
+
+            inputs.forEach(input => {
+                input.addEventListener('input', validateForm);
+            });
+
+            addSongBtn.addEventListener('mouseover', moveButton);
+            form.addEventListener('submit', function(event) {
+                if (!validateForm()) {
+                    event.preventDefault();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
