@@ -9,7 +9,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -18,8 +17,8 @@ public class BlogService implements IBlogService {
     private IBlogRepository blogRepository;
 
     @Override
-    public List<Blog> findAll() {
-        return blogRepository.findAll();
+    public Page<Blog> findAll(Pageable pageable) {
+        return blogRepository.findAll(pageable);
     }
 
     @Override
@@ -37,10 +36,6 @@ public class BlogService implements IBlogService {
         blogRepository.deleteById(id);
     }
 
-    @Override
-    public List<Blog> findByTitleContaining(String title) {
-        return blogRepository.findByTitleContaining(title);
-    }
 
     @Override
     public Page<Blog> findAllByOrderByCreatedAtDesc(Pageable pageable) {
@@ -57,4 +52,8 @@ public class BlogService implements IBlogService {
         return blogRepository.findByCategory(category, pageable);
     }
 
+    @Override
+    public Page<Blog> findByCategoryId(Long categoryId, Pageable pageable) {
+        return blogRepository.findByCategoryId(categoryId, pageable);
+    }
 }

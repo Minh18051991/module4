@@ -9,11 +9,11 @@ import java.util.List;
 import java.util.Optional;
 
 public interface IBlogService {
-    List<Blog> findAll();
+    Page<Blog> findAll(Pageable pageable);
     Optional<Blog> findById(Long id);
     Blog save(Blog blog);
     void deleteById(Long id);
-    List<Blog> findByTitleContaining(String title);
+    Page<Blog> findByCategoryId(Long categoryId, Pageable pageable);
     Page<Blog> findAllByOrderByCreatedAtDesc(Pageable pageable);
     Page<Blog> findByTitleContaining(String title, Pageable pageable);
     Page<Blog> findByCategory(Category category, Pageable pageable);

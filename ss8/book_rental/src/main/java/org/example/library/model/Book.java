@@ -16,6 +16,8 @@ public class Book {
     private Long id;
     private String title;
     private int quantity;
+    private double rentalFeePerDay;
+
 
 
 }

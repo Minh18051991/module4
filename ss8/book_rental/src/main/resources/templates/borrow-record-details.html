@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Borrow Record Details</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Borrow Record Details</h1>
+        <p>Borrow Code: <strong th:text="${borrowRecord.borrowCode}"></strong></p>
+        <p>Borrow Date: <strong th:text="${borrowRecord.borrowDate}"></strong></p>
+        <p>Books:</p>
+        <ul>
+            <li th:each="book : ${borrowRecord.books}">
+                <span th:text="${book.title}"></span> - Quantity: <span th:text="${book.quantity}"></span>
+            </li>
+        </ul>
+        <p>Total Rental Fee: <strong th:text="${borrowRecord.calculateTotalRentalFee()}"></strong></p>
+        <form action="/confirm-return" method="post">
+            <input type="hidden" name="borrowCode" th:value="${borrowRecord.borrowCode}">
+            <button type="submit" class="btn btn-primary">Confirm Return</button>
+        </form>
+    </div>
+</body>
+</html>

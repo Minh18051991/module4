@@ -5,6 +5,7 @@ import com.example.blog.model.Category;
 import com.example.blog.service.CategoryService;
 import com.example.blog.service.IBlogService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -13,6 +14,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Controller
@@ -26,15 +28,37 @@ public class BlogController {
         this.blogService = blogService;
         this.categoryService = categoryService;
     }
-
-    @GetMapping
-    public String getAllBlogs(Model model, @RequestParam(defaultValue = "0") int page) {
-        int pageSize = 2; // Set the number of blogs per page
-        Pageable pageable = PageRequest.of(page, pageSize);
-        model.addAttribute("blogs", blogService.findAllByOrderByCreatedAtDesc(pageable));
-        model.addAttribute("categories", categoryService.findAll());
-        return "index";
+ @GetMapping
+public String getAllBlogs(Model model,
+                          @RequestParam(defaultValue = "0") int page,
+                          @RequestParam(defaultValue = "3") int size,
+                          @RequestParam(required = false) Long categoryId,
+                          @RequestParam(required = false) String title) {
+    Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+    Page<Blog> blogs;
+    if (categoryId != null) {
+        Category category = categoryService.findById(categoryId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid category Id:" + categoryId));
+        blogs = blogService.findByCategory(category, pageable);
+    } else if (title != null && !title.isEmpty()) {
+        blogs = blogService.findByTitleContaining(title, pageable);
+    } else {
+        blogs = blogService.findAll(pageable);
     }
+
+    List<Category> categories = categoryService.findAll(); // Thay đổi này
+    model.addAttribute("blogs", blogs);
+    model.addAttribute("categories", categories);
+    model.addAttribute("currentPage", page);
+    model.addAttribute("totalPages", blogs.getTotalPages());
+    model.addAttribute("totalItems", blogs.getTotalElements());
+    model.addAttribute("pageSize", size);
+    model.addAttribute("categoryId", categoryId);
+    model.addAttribute("title", title);
+    return "index";
+}
+
+
 
     @GetMapping("/new")
     public String createBlogForm(Model model) {
@@ -53,19 +77,13 @@ public class BlogController {
         return "redirect:/blogs";
     }
 
-    @GetMapping("/update/{id}")
-    public String showUpdateForm(@PathVariable Long id, Model model) {
+@GetMapping("/edit/{id}")
+    public String editBlogForm(@PathVariable Long id, Model model) {
         Optional<Blog> blog = blogService.findById(id);
-        if (blog.isPresent()) {
-            model.addAttribute("blog", blog.get());
-            model.addAttribute("categories", categoryService.findAll());
-            return "update";
-        } else {
-            model.addAttribute("errorMessage", "Blog not found with id: " + id);
-            return "error";
-        }
+        model.addAttribute("blog", blog.get());
+        model.addAttribute("categories", categoryService.findAll());
+        return "edit";
     }
-
     @PostMapping("/update/{id}")
     public String updateBlog(@PathVariable Long id, @ModelAttribute Blog blog) {
         Blog existingBlog = blogService.findById(id)

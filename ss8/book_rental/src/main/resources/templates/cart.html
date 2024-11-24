@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cart</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+        h1 {
+            color: #343a40;
+        }
+        .table {
+            margin-top: 20px;
+        }
+        .btn-primary {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Your Cart</h1>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Book Name</th>
+                    <th>Quantity</th>
+                    <th>Rental Fee Per Day</th>
+                </tr>
+            </thead>
+            <tbody id="cart-items">
+                <!-- Cart items will be populated here -->
+                <tr th:each="item : ${cartItems}">
+                    <td th:text="${item.title}"></td>
+                    <td th:text="${item.quantity}"></td>
+                    <td th:text="${item.rentalFeePerDay}"></td>
+                </tr>
+            </tbody>
+        </table>
+        <form action="/cart/confirm" method="post">
+            <button type="submit" class="btn btn-primary">Confirm Borrow</button>
+        </form>
+    </div>
+</body>
+</html>

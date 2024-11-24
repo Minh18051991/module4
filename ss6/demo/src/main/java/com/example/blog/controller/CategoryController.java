@@ -3,6 +3,7 @@ package com.example.blog.controller;
 import com.example.blog.model.Category;
 import com.example.blog.service.ICategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -15,8 +16,8 @@ public class CategoryController {
     @Autowired
     private ICategoryService categoryService;
 
-    @GetMapping
-    public String listCategories(Model model) {
+@GetMapping
+    public String showCategories(Model model) {
         model.addAttribute("categories", categoryService.findAll());
         return "categories/index";
     }
