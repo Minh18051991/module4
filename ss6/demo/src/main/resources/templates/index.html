@@ -1,66 +1,144 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
     <title>Blog Application</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            let currentPage = 0;
+            const pageSize = 2;
+            let isSearch = false;
+            let searchTerm = '';
+            let currentCategoryId = 'all';
+
+            function loadBlogs(page) {
+                let url, data;
+                if (isSearch) {
+                    url = '/api/blogs/search';
+                    data = {title: searchTerm, page: page, size: pageSize};
+                } else if (currentCategoryId !== 'all') {
+                    url = `/api/categories/${currentCategoryId}/blogs`;
+                    data = {page: page, size: pageSize};
+                } else {
+                    url = '/api/blogs';
+                    data = {page: page, size: pageSize};
+                }
+
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    data: data,
+                    success: function (response) {
+                        const blogs = response.content;
+                        let blogHtml = '';
+                        blogs.forEach(blog => {
+                            blogHtml += `
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <h5 class="card-title">${blog.title}</h5>
+                                    <p class="card-text">${blog.content}</p>
+                                    <a href="/blogs/${blog.id}" class="btn btn-primary">View Details</a>
+                                </div>
+                            </div>
+                        `;
+                        });
+                        if (page === 0) {
+                            $('#blogList').html(blogHtml);
+                        } else {
+                            $('#blogList').append(blogHtml);
+                        }
+
+                        if (page >= response.totalPages - 1) {
+                            $('#loadMoreBtn').hide();
+                        } else {
+                            $('#loadMoreBtn').show();
+                        }
+                    }
+                });
+            }
+
+            function loadCategories() {
+                $.ajax({
+                    url: '/api/categories',
+                    type: 'GET',
+                    success: function (categories) {
+                        let categoryHtml = '<a href="#" class="btn btn-outline-primary mr-2 mb-2 category-btn" data-id="all">All</a>';
+                        categories.forEach(category => {
+                            categoryHtml += `<a href="#" class="btn btn-outline-primary mr-2 mb-2 category-btn" data-id="${category.id}">${category.name}</a>`;
+                        });
+                        $('#categoryList').html(categoryHtml);
+                    }
+                });
+            }
+
+            $('#loadMoreBtn').click(function () {
+                currentPage++;
+                loadBlogs(currentPage);
+            });
+
+            $('#searchForm').submit(function (e) {
+                e.preventDefault();
+                $('#blogList').empty();
+                searchTerm = $('#searchInput').val();
+                isSearch = searchTerm !== '';
+                currentPage = 0;
+                currentCategoryId = 'all';
+                loadBlogs(currentPage);
+            });
+
+            $(document).on('click', '.category-btn', function (e) {
+                e.preventDefault();
+                currentCategoryId = $(this).data('id');
+                $('#blogList').empty();
+                currentPage = 0;
+                isSearch = false;
+                searchTerm = '';
+                $('#searchInput').val('');
+                loadBlogs(currentPage);
+            });
+
+            loadCategories();
+            loadBlogs(currentPage);
+        });
+    </script>
 </head>
 <body>
-    <div class="container mt-5">
-        <h1 class="mb-4">Blog Application</h1>
-        <div class="mb-3">
-            <a href="/blogs/new" class="btn btn-primary">Tạo blog mới</a>
-        </div>
+<div class="container mt-5">
+    <h1 class="mb-4">Blog Application</h1>
+    <div class="mb-3">
+        <a href="/blogs/new" class="btn btn-primary">Tạo blog mới</a>
+    </div>
 
-        <!-- Categories -->
-        <div id="categories" class="mb-4">
-            <h3>Categories</h3>
-            <div id="categoryList">
-                <a th:href="@{/blogs}" class="btn btn-outline-primary mr-2 mb-2">All</a>
-                <a th:each="category : ${categories}"
-                   th:href="@{/blogs(categoryId=${category.id})}"
-                   class="btn btn-outline-primary mr-2 mb-2"
-                   th:text="${category.name}"></a>
-            </div>
-        </div>
-
-        <!-- Search Form -->
-        <form th:action="@{/blogs}" method="get" class="mb-4">
-            <div class="input-group">
-                <input type="text" class="form-control" name="title" th:value="${title}" placeholder="Search by title">
-                <div class="input-group-append">
-                    <button class="btn btn-outline-secondary" type="submit">Search</button>
-                </div>
-            </div>
-        </form>
-
-        <!-- Blogs -->
-        <div id="blogs">
-            <h3>Blogs</h3>
-            <div id="blogList">
-                <div th:each="blog : ${blogs.content}" class="card mb-3">
-                    <div class="card-body">
-                        <h5 class="card-title" th:text="${blog.title}"></h5>
-                        <p class="card-text" th:text="${#strings.abbreviate(blog.content, 100)}"></p>
-                        <a th:href="@{'/blogs/' + ${blog.id}}" class="btn btn-primary">View Details</a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Pagination -->
-            <nav th:if="${totalPages > 1}" aria-label="Page navigation">
-                <ul class="pagination justify-content-center">
-                    <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
-                        <a class="page-link" th:href="@{/blogs(page=${currentPage - 1}, size=${pageSize}, categoryId=${categoryId}, title=${title})}">&laquo;</a>
-                    </li>
-                    <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${currentPage == i} ? 'active'">
-                        <a class="page-link" th:href="@{/blogs(page=${i}, size=${pageSize}, categoryId=${categoryId}, title=${title})}" th:text="${i + 1}"></a>
-                    </li>
-                    <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
-                        <a class="page-link" th:href="@{/blogs(page=${currentPage + 1}, size=${pageSize}, categoryId=${categoryId}, title=${title})}">&raquo;</a>
-                    </li>
-                </ul>
-            </nav>
+    <!-- Categories -->
+    <div id="categories" class="mb-4">
+        <h3>Categories</h3>
+        <div id="categoryList">
+            <!-- Categories will be loaded here -->
         </div>
     </div>
+
+    <!-- Search Form -->
+    <form id="searchForm" class="mb-4">
+        <div class="input-group">
+            <input type="text" class="form-control" id="searchInput" placeholder="Search by title">
+            <div class="input-group-append">
+                <button class="btn btn-outline-secondary" type="submit">Search</button>
+            </div>
+        </div>
+    </form>
+
+    <!-- Blogs -->
+    <div id="blogs">
+        <h3>Blogs</h3>
+        <div id="blogList">
+            <!-- Blogs will be loaded here -->
+
+        </div>
+        <button id="loadMoreBtn" class="btn btn-primary mt-3">Load More</button>
+    </div>
+</div>
+
+
 </body>
 </html>

@@ -1,5 +1,6 @@
 package com.example.blog.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -24,7 +25,7 @@ public class Blog {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-
+@JsonBackReference
 @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;
