@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="jp" xmlns:th="http://www.thymeleaf.org" th:lang="${#locale}">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="#{page.title}">Customer Management Home</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</head>
+<body>
+<div class="container mt-5">
+    <div class="mb-3">
+        <a href="?lang=en" class="btn btn-sm btn-outline-primary">English</a>
+        <a href="?lang=vi" class="btn btn-sm btn-outline-primary">Tiếng Việt</a>
+        <a href="?lang=jp" class="btn btn-sm btn-outline-primary">日本語</a>
+    </div>
+
+    <h1 th:text="#{customer.management}">Customer Management</h1>
+    <button id="loadCustomers" class="btn btn-primary mb-3" th:text="#{load.customers}">Load Customers</button>
+    <div id="customerList"></div>
+    <div id="pagination"></div>
+
+    <div class="mt-4">
+        <h2 th:text="#{add.new.customer}">Add New Customer</h2>
+        <form id="addCustomerForm">
+            <div class="form-group">
+                <label for="firstName" th:text="#{customer.firstname}">First Name</label>
+                <input type="text" class="form-control" id="firstName" required>
+            </div>
+            <div class="form-group">
+                <label for="lastName" th:text="#{customer.lastname}">Last Name</label>
+                <input type="text" class="form-control" id="lastName" required>
+            </div>
+            <button type="submit" class="btn btn-success" th:text="#{add.customer}">Add Customer</button>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Customer Modal -->
+<div class="modal fade" id="editCustomerModal" tabindex="-1" role="dialog" aria-labelledby="editCustomerModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editCustomerModalLabel" th:text="#{edit.customer}">Edit Customer</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editCustomerForm">
+                    <input type="hidden" id="editCustomerId">
+                    <div class="form-group">
+                        <label for="editFirstName" th:text="#{customer.firstname}">First Name</label>
+                        <input type="text" class="form-control" id="editFirstName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editLastName" th:text="#{customer.lastname}">Last Name</label>
+                        <input type="text" class="form-control" id="editLastName" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" th:text="#{close}">Close</button>
+                <button type="button" class="btn btn-primary" id="saveEditCustomer" th:text="#{save.changes}">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    $(document).ready(function() {
+        let currentPage = 0;
+        const pageSize = 3;
+
+        const messages = {
+            id: /*[[#{customer.id}]]*/ 'ID',
+            firstName: /*[[#{customer.firstname}]]*/ 'First Name',
+            lastName: /*[[#{customer.lastname}]]*/ 'Last Name',
+            actions: /*[[#{actions}]]*/ 'Actions',
+            edit: /*[[#{edit}]]*/ 'Edit',
+            delete: /*[[#{delete}]]*/ 'Delete',
+            confirmDelete: /*[[#{confirm.delete}]]*/ 'Are you sure you want to delete this customer?',
+            customerAdded: /*[[#{customer.added}]]*/ 'Customer added successfully!',
+            errorAddingCustomer: /*[[#{error.adding.customer}]]*/ 'Error adding customer. Please try again.',
+            errorFetchingCustomer: /*[[#{error.fetching.customer}]]*/ 'Error fetching customer details. Please try again.',
+            customerUpdated: /*[[#{customer.updated}]]*/ 'Customer updated successfully!',
+            errorUpdatingCustomer: /*[[#{error.updating.customer}]]*/ 'Error updating customer. Please try again.',
+            customerDeleted: /*[[#{customer.deleted}]]*/ 'Customer deleted successfully!',
+            errorDeletingCustomer: /*[[#{error.deleting.customer}]]*/ 'Error deleting customer. Please try again.'
+        };
+
+        function loadCustomers(page) {
+            $.ajax({
+                url: `/api/customers?page=${page}&size=${pageSize}`,
+                method: 'GET',
+                success: function(response) {
+                    displayCustomers(response.content);
+                    displayPagination(response);
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error loading customers:', error);
+                }
+            });
+        }
+
+        function displayCustomers(customers) {
+            let html = `<table class="table table-bordered"><thead><tr><th>${messages.id}</th><th>${messages.firstName}</th><th>${messages.lastName}</th><th>${messages.actions}</th></tr></thead><tbody>`;
+            customers.forEach(function(customer) {
+                html += `<tr>
+                    <td>${customer.id}</td>
+                    <td>${customer.firstName}</td>
+                    <td>${customer.lastName}</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning edit-customer" data-id="${customer.id}">${messages.edit}</button>
+                        <button class="btn btn-sm btn-danger delete-customer" data-id="${customer.id}">${messages.delete}</button>
+                    </td>
+                </tr>`;
+            });
+            html += '</tbody></table>';
+            $('#customerList').html(html);
+        }
+
+        function displayPagination(pageData) {
+            let html = '<nav><ul class="pagination">';
+            for (let i = 0; i < pageData.totalPages; i++) {
+                html += `<li class="page-item ${i === pageData.number ? 'active' : ''}">
+                    <a class="page-link" href="#" data-page="${i}">${i + 1}</a>
+                </li>`;
+            }
+            html += '</ul></nav>';
+            $('#pagination').html(html);
+        }
+
+        $('#loadCustomers').click(function() {
+            loadCustomers(currentPage);
+        });
+
+        $('#pagination').on('click', '.page-link', function(e) {
+            e.preventDefault();
+            currentPage = $(this).data('page');
+            loadCustomers(currentPage);
+        });
+
+        $('#addCustomerForm').submit(function(e) {
+            e.preventDefault();
+            const firstName = $('#firstName').val();
+            const lastName = $('#lastName').val();
+
+            $.ajax({
+                url: '/api/customers',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ firstName: firstName, lastName: lastName }),
+                success: function(response) {
+                    alert(messages.customerAdded);
+                    $('#firstName').val('');
+                    $('#lastName').val('');
+                    loadCustomers(currentPage);
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error adding customer:', error);
+                    alert(messages.errorAddingCustomer);
+                }
+            });
+        });
+
+        $(document).on('click', '.edit-customer', function() {
+            const customerId = $(this).data('id');
+            $.ajax({
+                url: `/api/customers/${customerId}`,
+                method: 'GET',
+                success: function(customer) {
+                    $('#editCustomerId').val(customer.id);
+                    $('#editFirstName').val(customer.firstName);
+                    $('#editLastName').val(customer.lastName);
+                    $('#editCustomerModal').modal('show');
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error fetching customer details:', error);
+                    alert(messages.errorFetchingCustomer);
+                }
+            });
+        });
+
+        $('#saveEditCustomer').click(function() {
+            const customerId = $('#editCustomerId').val();
+            const firstName = $('#editFirstName').val();
+            const lastName = $('#editLastName').val();
+
+            $.ajax({
+                url: `/api/customers/${customerId}`,
+                method: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify({ id: customerId, firstName: firstName, lastName: lastName }),
+                success: function(response) {
+                    alert(messages.customerUpdated);
+                    $('#editCustomerModal').modal('hide');
+                    loadCustomers(currentPage);
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error updating customer:', error);
+                    alert(messages.errorUpdatingCustomer);
+                }
+            });
+        });
+
+        $(document).on('click', '.delete-customer', function() {
+            const customerId = $(this).data('id');
+            if (confirm(messages.confirmDelete)) {
+                $.ajax({
+                    url: `/api/customers/${customerId}`,
+                    method: 'DELETE',
+                    success: function() {
+                        alert(messages.customerDeleted);
+                        loadCustomers(currentPage);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error deleting customer:', error);
+                        alert(messages.errorDeletingCustomer);
+                    }
+                });
+            }
+        });
+
+        // Load customers when the page loads
+        loadCustomers(currentPage);
+    });
+</script>
+</body>
+</html>

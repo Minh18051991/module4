@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Edit Customer</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Edit Customer</h1>
+    <form id="editCustomerForm">
+        <label for="firstName">First Name:</label>
+        <input type="text" id="firstName" name="firstName"><br>
+        <label for="lastName">Last Name:</label>
+        <input type="text" id="lastName" name="lastName"><br>
+        <button type="submit">Update</button>
+    </form>
+    <a href="/list.html">Back to Customer List</a>
+    <script>
+        $(document).ready(function() {
+            var urlParams = new URLSearchParams(window.location.search);
+            var customerId = urlParams.get('customerId');
+            $.ajax({
+                url: '/api/customers/' + customerId,
+                method: 'GET',
+                success: function(customer) {
+                    $('#firstName').val(customer.firstName);
+                    $('#lastName').val(customer.lastName);
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error:', error);
+                }
+            });
+
+            $('#editCustomerForm').submit(function(event) {
+                event.preventDefault();
+                var customer = {
+                    firstName: $('#firstName').val(),
+                    lastName: $('#lastName').val()
+                };
+                $.ajax({
+                    url: '/api/customers/' + customerId,
+                    method: 'PUT',
+                    contentType: 'application/json',
+                    data: JSON.stringify(customer),
+                    success: function() {
+                        window.location.href = '/list.html';
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error:', error);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

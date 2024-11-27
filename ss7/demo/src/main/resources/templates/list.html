@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>List Customers</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Customer List</h1>
+    <table id="customerTable" border="1">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Customer rows will be appended here -->
+        </tbody>
+    </table>
+    <script>
+        $(document).ready(function() {
+            $.ajax({
+                url: '/api/customers',
+                method: 'GET',
+                success: function(data) {
+                    const customers = data.content;
+                    customers.forEach(customer => {
+                        $('#customerTable tbody').append(`
+                            <tr>
+                                <td>${customer.id}</td>
+                                <td>${customer.firstName}</td>
+                                <td>${customer.lastName}</td>
+                            </tr>
+                        `);
+                    });
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.error('Error fetching customers:', textStatus, errorThrown);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

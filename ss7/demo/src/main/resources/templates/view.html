@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>View Customer</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1 id="viewCustomerTitle"></h1>
+    <p id="firstNameLabel"></p>
+    <p id="lastNameLabel"></p>
+    <button id="backBtn"></button>
+    <script>
+        $(document).ready(function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const customerId = urlParams.get('id');
+            loadCustomer(customerId);
+            loadLanguage('en');
+
+            $('#backBtn').click(function() {
+                window.location.href = 'list.html';
+            });
+        });
+
+        function loadCustomer(id) {
+            $.ajax({
+                url: `/api/customers/${id}`,
+                method: 'GET',
+                success: function(data) {
+                    $('#firstNameLabel').text(data.firstName);
+                    $('#lastNameLabel').text(data.lastName);
+                }
+            });
+        }
+
+        function loadLanguage(lang) {
+            $.getJSON(`/messages_${lang}.json`, function(data) {
+                $('#viewCustomerTitle').text(data['customer.details']);
+                $('#backBtn').text(data['customer.cancel']);
+            });
+        }
+    </script>
+</body>
+</html>
