@@ -1,7 +1,7 @@
 package com.example.blog.controller;
 
 import com.example.blog.model.Category;
-import com.example.blog.service.ICategoryService;
+import com.example.blog.service.category.ICategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.stereotype.Controller;

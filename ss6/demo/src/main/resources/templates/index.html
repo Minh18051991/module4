@@ -4,25 +4,23 @@
     <title>Blog Application</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
+    <script th:inline="javascript">
         $(document).ready(function () {
             let currentPage = 0;
-            const pageSize = 2;
+            const pageSize = 5;
             let isSearch = false;
             let searchTerm = '';
-            let currentCategoryId = 'all';
+            let currentCategoryId = null;
 
             function loadBlogs(page) {
-                let url, data;
+                let url = '/api/blogs';
+                let data = {page: page, size: pageSize};
+
                 if (isSearch) {
-                    url = '/api/blogs/search';
-                    data = {title: searchTerm, page: page, size: pageSize};
-                } else if (currentCategoryId !== 'all') {
-                    url = `/api/categories/${currentCategoryId}/blogs`;
-                    data = {page: page, size: pageSize};
-                } else {
-                    url = '/api/blogs';
-                    data = {page: page, size: pageSize};
+                    data.title = searchTerm;
+                }
+                if (currentCategoryId) {
+                    data.categoryId = currentCategoryId;
                 }
 
                 $.ajax({
@@ -37,8 +35,11 @@
                             <div class="card mb-3">
                                 <div class="card-body">
                                     <h5 class="card-title">${blog.title}</h5>
-                                    <p class="card-text">${blog.content}</p>
+                                    <p class="card-text">${blog.content.substring(0, 100)}...</p>
+                                    <p class="card-text"><small class="text-muted">Category: ${blog.category.name}</small></p>
+                                    <p class="card-text"><small class="text-muted">Created at: ${new Date(blog.createdAt).toLocaleString()}</small></p>
                                     <a href="/blogs/${blog.id}" class="btn btn-primary">View Details</a>
+                                    <a href="/blogs/edit/${blog.id}" class="btn btn-secondary">Edit</a>
                                 </div>
                             </div>
                         `;
@@ -63,7 +64,7 @@
                     url: '/api/categories',
                     type: 'GET',
                     success: function (categories) {
-                        let categoryHtml = '<a href="#" class="btn btn-outline-primary mr-2 mb-2 category-btn" data-id="all">All</a>';
+                        let categoryHtml = '<a href="#" class="btn btn-outline-primary mr-2 mb-2 category-btn active" data-id="">All</a>';
                         categories.forEach(category => {
                             categoryHtml += `<a href="#" class="btn btn-outline-primary mr-2 mb-2 category-btn" data-id="${category.id}">${category.name}</a>`;
                         });
@@ -83,13 +84,15 @@
                 searchTerm = $('#searchInput').val();
                 isSearch = searchTerm !== '';
                 currentPage = 0;
-                currentCategoryId = 'all';
+                currentCategoryId = null;
                 loadBlogs(currentPage);
             });
 
             $(document).on('click', '.category-btn', function (e) {
                 e.preventDefault();
-                currentCategoryId = $(this).data('id');
+                $('.category-btn').removeClass('active');
+                $(this).addClass('active');
+                currentCategoryId = $(this).data('id') || null;
                 $('#blogList').empty();
                 currentPage = 0;
                 isSearch = false;
@@ -107,7 +110,7 @@
 <div class="container mt-5">
     <h1 class="mb-4">Blog Application</h1>
     <div class="mb-3">
-        <a href="/blogs/new" class="btn btn-primary">Tạo blog mới</a>
+        <a href="/blogs/new" class="btn btn-success">Create New Blog</a>
     </div>
 
     <!-- Categories -->
@@ -133,12 +136,10 @@
         <h3>Blogs</h3>
         <div id="blogList">
             <!-- Blogs will be loaded here -->
-
         </div>
         <button id="loadMoreBtn" class="btn btn-primary mt-3">Load More</button>
     </div>
 </div>
-
 
 </body>
 </html>

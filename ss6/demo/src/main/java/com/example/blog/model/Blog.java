@@ -7,7 +7,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.sql.Date;
 import java.time.LocalDateTime;
 
 
@@ -21,9 +20,16 @@ public class Blog {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String title;
+    private String img;
     private String content;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+
+    @JsonBackReference
+    @ManyToOne
+    @JoinColumn(name = "user_id", referencedColumnName = "User_Id")
+    private AppUser appUser;
 
 @JsonBackReference
 @ManyToOne

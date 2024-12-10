@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Product List</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container mt-5">
+    <h1>Danh sách sản phẩm </h1>
+    <a href="/products/add" class="btn btn-primary mb-3">Thêm Sản phẩm mới</a>
+
+    <form th:action="@{/products}" method="get" class="mb-3">
+        <div class="input-group">
+            <input type="text" class="form-control" name="keyword" th:value="${keyword}" placeholder="Tìm kiếm sản phẩm">
+            <div class="input-group-append">
+                <button class="btn btn-outline-secondary" type="submit">Tìm kiếm</button>
+            </div>
+        </div>
+    </form>
+
+    <form th:action="@{/products/delete-multiple}" method="post">
+        <table class="table">
+            <thead>
+            <tr>
+                <th><input type="checkbox" id="selectAll"></th>
+                <th>ID</th>
+                <th>Tên Sản Phẩm</th>
+                <th>Giá Sản Phẩm</th>
+                <th>Loại Sản Phẩm </th>
+                <th>Hành Động</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="product : ${products}">
+                <td><input type="checkbox" name="ids" th:value="${product.id}"></td>
+                <td th:text="${product.id}"></td>
+                <td th:text="${product.name}"></td>
+                <td th:text="${product.price}"></td>
+                <td th:text="${product.category.name}"></td>
+                <td>
+                    <a th:href="@{/products/edit/{id}(id=${product.id})}" class="btn btn-sm btn-warning">Sửa</a>
+                    <a th:href="@{/products/delete/{id}(id=${product.id})}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Xóa</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <button type="submit" class="btn btn-danger" onclick="return confirm('Bạn có muốn xóa cac sản phẩm đươc chọn')">Xóa các sản phẩm</button>
+    </form>
+
+    <nav aria-label="Page navigation" th:if="${products.totalPages > 1}">
+        <ul class="pagination justify-content-center">
+            <li class="page-item" th:classappend="${products.number == 0} ? disabled">
+                <a class="page-link" th:href="@{/products(page=${products.number - 1}, size=${products.size}, keyword=${keyword})}">Trước</a>
+            </li>
+            <li class="page-item" th:each="pageNumber : ${#numbers.sequence(0, products.totalPages - 1)}"
+                th:classappend="${pageNumber == products.number} ? active">
+                <a class="page-link" th:href="@{/products(page=${pageNumber}, size=${products.size}, keyword=${keyword})}"
+                   th:text="${pageNumber + 1}"></a>
+            </li>
+            <li class="page-item" th:classappend="${products.number + 1 == products.totalPages} ? disabled">
+                <a class="page-link" th:href="@{/products(page=${products.number + 1}, size=${products.size}, keyword=${keyword})}">Sau</a>
+            </li>
+        </ul>
+    </nav>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+<script>
+    document.getElementById('selectAll').onclick = function() {
+        var checkboxes = document.getElementsByName('ids');
+        for (var checkbox of checkboxes) {
+            checkbox.checked = this.checked;
+        }
+    }
+</script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-package com.example.blog.service;
+package com.example.blog.service.category;
 
 import com.example.blog.model.Category;
 

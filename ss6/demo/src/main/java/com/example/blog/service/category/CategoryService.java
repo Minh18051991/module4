@@ -1,10 +1,8 @@
-package com.example.blog.service;
+package com.example.blog.service.category;
 
 import com.example.blog.model.Category;
 import com.example.blog.repository.ICategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
