@@ -1,5 +1,6 @@
 package org.example.ket_thuc_module_4.controller;
 
+import jakarta.validation.Valid;
 import org.example.ket_thuc_module_4.model.Product;
 import org.example.ket_thuc_module_4.model.Category;
 import org.example.ket_thuc_module_4.service.IProductService;
@@ -8,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -46,11 +48,15 @@ public class ProductController {
         return "product/add";
     }
 
-    @PostMapping("/add")
-    public String addProduct(@ModelAttribute Product product) {
-        productService.save(product);
-        return "redirect:/products";
+@PostMapping("/add")
+public String addProduct(@Valid @ModelAttribute("product") Product product, BindingResult bindingResult, Model model) {
+    if (bindingResult.hasErrors()) {
+        model.addAttribute("categories", productService.getAllCategories());
+        return "product/add";
     }
+    productService.save(product);
+    return "redirect:/products";
+}
 
 
     @GetMapping("/delete/{id}")
